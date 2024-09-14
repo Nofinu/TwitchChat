@@ -21,26 +21,12 @@ const client = new tmi.Client({
 
 client.connect();
 
-
 // liste des badge utilisés lors de l'affichage 
 let globalBadge= []
 
-
 // apres la connection recuperation des badges 
 client.on('connected', async (address, port) => {
-     fetch("https://api.twitch.tv/helix/chat/badges/global",{
-        headers: {
-            "Content-Type": "application/json",
-             Authorization: AUTHORIZATION,
-            "Client-Id" : CLIENT_ID
-          },
-    }).then(response => response.json()).then(body => globalBadge.push(...body.data));
-
-    const twitchDefaultSubscriver = globalBadge.find(e => e.set_id == 'subscriber')
-    const index = globalBadge.indexOf(twitchDefaultSubscriver);
-    if (index > -1) {
-      globalBadge.splice(index, 1); 
-    }
+    await getGlobalTwitchBadge()
 
     fetch(`https://api.twitch.tv/helix/chat/badges?broadcaster_id=${ID_BROADCASTER}`,{
       headers: {
@@ -49,8 +35,24 @@ client.on('connected', async (address, port) => {
           "Client-Id" : CLIENT_ID
         },
     }).then(response => response.json()).then(body => globalBadge.push(...body.data) );
-
+    
   })
+
+ async function getGlobalTwitchBadge(){
+  fetch("https://api.twitch.tv/helix/chat/badges/global",{
+    headers: {
+        "Content-Type": "application/json",
+         Authorization: AUTHORIZATION,
+        "Client-Id" : CLIENT_ID
+      },
+  }).then(response => response.json()).then(body => globalBadge.push(...body.data));
+
+  const twitchDefaultSubscriver = globalBadge.find(e => e.set_id == 'subscriber')
+  const index = globalBadge.indexOf(twitchDefaultSubscriver);
+  if (index > -1) {
+    globalBadge.splice(index, 1); 
+  }
+ }
 
 
 

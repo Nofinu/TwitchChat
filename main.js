@@ -3,6 +3,7 @@ import { OAUTH_TOKEN, CHANNEL_NAME, CLIENT_ID,AUTHORIZATION,ID_BROADCASTER } fro
 
 const tchat = document.querySelector('#tchat')
 
+
 const client = new tmi.Client({
   options: { 
     debug: true,
@@ -22,11 +23,18 @@ const client = new tmi.Client({
 client.connect();
 
 // liste des badge utilisés lors de l'affichage 
-let globalBadge= []
+let globalBadges= []
+let subscriberBadges
 
 // apres la connection recuperation des badges 
 client.on('connected', async (address, port) => {
-    await getGlobalTwitchBadge()
+    fetch("https://api.twitch.tv/helix/chat/badges/global",{
+      headers: {
+          "Content-Type": "application/json",
+           Authorization: AUTHORIZATION,
+          "Client-Id" : CLIENT_ID
+        },
+    }).then(response => response.json()).then(body => globalBadges.push(...body.data))
 
     fetch(`https://api.twitch.tv/helix/chat/badges?broadcaster_id=${ID_BROADCASTER}`,{
       headers: {
@@ -34,30 +42,14 @@ client.on('connected', async (address, port) => {
            Authorization: AUTHORIZATION,
           "Client-Id" : CLIENT_ID
         },
-    }).then(response => response.json()).then(body => globalBadge.push(...body.data) );
+    }).then(response => response.json()).then(body => subscriberBadges = body.data );
     
   })
 
- async function getGlobalTwitchBadge(){
-  fetch("https://api.twitch.tv/helix/chat/badges/global",{
-    headers: {
-        "Content-Type": "application/json",
-         Authorization: AUTHORIZATION,
-        "Client-Id" : CLIENT_ID
-      },
-  }).then(response => response.json()).then(body => globalBadge.push(...body.data));
-
-  const twitchDefaultSubscriver = globalBadge.find(e => e.set_id == 'subscriber')
-  const index = globalBadge.indexOf(twitchDefaultSubscriver);
-  if (index > -1) {
-    globalBadge.splice(index, 1); 
-  }
- }
 
 
 
 client.on('message', (channel, tags, message, self) => {
-	// "Alca: Hello, World!"
     const color = tags['color']
     const emote = tags['emotes']
     const messageType = tags['msg-id']
@@ -181,9 +173,10 @@ function getBadge (badge){
 
     let message = ""
     for(let key in badge){
-      let badgeInfo = globalBadge.find(e => e.set_id == key)
+      let badgeInfo = globalBadges.find(e => e.set_id == key)
       if(key === "subscriber"){
-        let subscriberBadge  = badgeInfo['versions'].find(b => b.id == badge['subscriber'])
+        console.log(subscriberBadges);
+        let subscriberBadge  = subscriberBadges[0]['versions'].find(b => b.id == badge['subscriber'])
         message += `<img src="${subscriberBadge['image_url_1x']}"/>`
       }else{
          message += `<img src="${badgeInfo['versions']['0']['image_url_1x']}"/>`

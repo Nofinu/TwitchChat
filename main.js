@@ -175,7 +175,6 @@ function getBadge (badge){
     for(let key in badge){
       let badgeInfo = globalBadges.find(e => e.set_id == key)
       if(key === "subscriber"){
-        console.log(subscriberBadges);
         let subscriberBadge  = subscriberBadges[0]['versions'].find(b => b.id == badge['subscriber'])
         message += `<img src="${subscriberBadge['image_url_1x']}"/>`
       }else{

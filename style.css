@@ -1,0 +1,78 @@
+body,html{
+    height: 100%;
+    overflow: hidden;
+    margin: 0;
+    padding: 5px;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.tchat{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.message {
+    width: 100%;
+    inset: 0;
+    top: auto;
+    display: flex;
+    flex-direction: column;
+    margin-top: 1rem;
+    overflow: hidden;
+    animation: MessageIn .3s;
+
+}
+
+.animatedMessage{
+    inset: 0;
+    top: auto;
+    display: flex;
+    flex-direction: column;
+    margin-top: 1rem;
+    overflow: hidden;
+    animation: MessageIn .3s;
+    background-color: green;
+}
+
+.meta{
+    display: flex;
+    /* color: var(--color); */
+    color: rgb(233, 233, 233);
+    background-color: #0d15b3;
+    border-radius: 10px 10px 10px 0px;
+    padding: 5px;
+    padding-right: 15px;
+    margin-bottom: 5px;
+    width: fit-content;
+}
+
+.badge{
+    display: flex;
+    flex-direction: row;
+    gap: 0.2rem;
+    margin-right: 5px;
+}
+
+.messageContent{
+    background-color: #141529;
+    color: rgb(236, 236, 236);
+    border-radius: 0px 10px 10px 10px;
+    padding: 5px;
+}
+
+
+@keyframes MessageIn {
+    from { transform: translateX(20px);
+        opacity: 0;
+        max-height: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+
+        max-height: 400px;
+    
+    }
+}

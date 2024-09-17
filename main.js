@@ -45,90 +45,70 @@ client.on('connected', async (address, port) => {
 })
 
 client.on('message', (channel, tags, message, self) => {
-  const color = tags['color']
+  setMessage(tags,message)
+});
+
+client.on("cheer", (channel, userstate, message) => {
+  // setMessage(userstate,message)
+});
+
+function setMessage (tags,message){
+  // const color = tags['color']
   const emote = tags['emotes']
   const messageType = tags['msg-id']
   const badge = tags['badges']
-  
-  console.log(badge)
-  console.log(globalBadges)
 
-  if (emote == null) {
-    //style="--color: ${color}"
-    tchat.insertAdjacentHTML('beforeend',/*html*/`<div id="message-${tags['id']}" data-sender="${tags['user-id']}" class="${messageType === "animated-message" ? "animatedMessage" : "message"}" >
-            <div class="meta">
-                ${tags['display-name']}
-            </div>
-            <div class="messageBody" id="messageBody">
-              <div id="badge" class="badge ${badge == null ? "badgeHidden" : ""}">
-              ${getBadge(badge)}
-              </div>
-              <div id="messageContent" class="${badge == null ? "messageContentWithoutBadge" : "messageContent"}">
-                ${message}
-              </div>
-            </div>`)
-  } else {
-    tchat.insertAdjacentHTML('beforeend',/*html*/`<div id="message-${tags['id']}" data-sender="${tags['user-id']}" class="${messageType === "animated-message" ? "animatedMessage" : "message"}">
-            <div class="meta">
-                ${tags['display-name']}
-            </div>
-            <div class="messageBody" id="messageBody">
-              <div id="badge" class="badge ${badge == null ? "badgeHidden" : ""}">
-                ${getBadge(badge)}  
-              </div>
-              <div id="messageContent" class="${badge == null ? "messageContentWithoutBadge" : "messageContent"}">
-                ${getMessageHTML(message, emote, messageType)}
-              </div>
-            </div>`)
-  }
+  tchat.appendChild(createMessage(tags,badge,message,emote,messageType))
+
   const messages = document.querySelectorAll('.message')
   const messageCount = messages.length
-  const maxMsg = 10
+  const maxMsg = 5
   if (messageCount > maxMsg) {
     Array.from(messages).slice(0, messageCount - maxMsg).forEach((msg) => msg.remove())
   }
+}
 
-});
+function createMessage (tags,badge,message,emote,messageType){
+  let divMessage = document.createElement('div')
+  divMessage.setAttribute("class", "message"); 
+  divMessage.setAttribute("id",`message-${tags['id']}`)
+  divMessage.setAttribute("data-sender",`${tags['user-id']}`)
 
-// todo add bit message
+  let divMeta = document.createElement('div')
+  divMeta.setAttribute("class", "meta"); 
+  divMeta
+  const username = document.createTextNode(`${tags['display-name']}`);
+  divMeta.appendChild(username)
 
-// client.on('bits', (channel, tags, message, self) => {
-// 	// "Alca: Hello, World!"
-//     const color = tags['color']
-//     const emote = tags['emotes']
-//     console.log(emote);
-//     if(emote == null){
-//         tchat.insertAdjacentHTML('beforeend',/*html*/`<div id="message-${tags['id']}" data-sender="${tags['user-id']}" class="message" style="--color: ${color}">
-//             <div class="meta">
-//                 ${tags['display-name']}
-//             </div>
-//                 <div id="messageContent" class="messageContent">
-//                     ${message}
-//                 </div>
-//             </div>`)
-//     }else{
-//         console.log("message avec emote");
-
-//         tchat.insertAdjacentHTML('beforeend',/*html*/`<div id="message-${tags['id']}" data-sender="${tags['user-id']}" class="message" style="--color: ${color}">
-//             <div class="meta">
-//                 ${tags['display-name']}
-//             </div>
-//                 <div id="messageContent" class="messageContent">
-//                     ${getMessageHTML(message,emote,tags['msg-id'])}
-//                 </div>
-//             </div>`)
-//     }
-//         console.log(tags)
+  let divMessageBody = document.createElement('div')
+  divMessageBody.setAttribute("class", "messageBody"); 
+  divMessageBody.setAttribute("id","messageBody")
 
 
-//     const messages = document.querySelectorAll('.message')
-//     const messageCount = messages.length
-//     const maxMsg = 10
-//     if(messageCount > maxMsg){
-//         Array.from(messages).slice(0,messageCount-maxMsg).forEach((msg) => msg.remove())
-//     }
+  let divBadge = document.createElement('div')
+  divBadge.setAttribute("class", badge == null ? "badge badgeHidden" : "badge"); 
+  divBadge.setAttribute("id","badge")
+  divBadge.insertAdjacentHTML('beforeend',/*html*/getBadge(badge))
+  divMessageBody.appendChild(divBadge)
 
-// });
+  let divMessageContent = document.createElement('div')
+  divMessageContent.setAttribute("class", `${badge == null ? "messageContentWithoutBadge" : "messageContent"}`); 
+  divMessageContent.setAttribute("id","messageContent")
+
+  if (emote == null) {
+    let content = document.createTextNode(message)
+    divMessageContent.appendChild(content)
+  }else{
+    divMessageContent.appendChild(getMessageHTML(message, emote, messageType))
+  }
+
+  divMessageBody.appendChild(divMessageContent)
+
+  divMessage.appendChild(divMeta)
+  divMessage.appendChild(divMessageBody)
+
+  return divMessage
+}
 
 // Methode d'ajout des emote dans le message
 function getMessageHTML(message, emotes, messageType) {
@@ -145,26 +125,45 @@ function getMessageHTML(message, emotes, messageType) {
     );
 
     if (messageType === "gigantified-emote-message") {
+      // img.src = `https://static-cdn.jtvnw.net/emoticons/v2/${id}/default/light/3.0`
       stringReplacements.push({
         stringToReplace: stringToReplace,
-        replacement: `<img src="https://static-cdn.jtvnw.net/emoticons/v2/${id}/default/light/3.0">`,
+        replacement: `https://static-cdn.jtvnw.net/emoticons/v2/${id}/default/light/3.0`,
       });
     } else {
+      // img.src = `https://static-cdn.jtvnw.net/emoticons/v2/${id}/default/light/1.0`
       stringReplacements.push({
         stringToReplace: stringToReplace,
-        replacement: `<img src="https://static-cdn.jtvnw.net/emoticons/v2/${id}/default/light/1.0">`,
+        replacement:`https://static-cdn.jtvnw.net/emoticons/v2/${id}/default/light/2.0`,
       });
     }
 
   });
 
-  const messageHTML = stringReplacements.reduce(
-    (acc, { stringToReplace, replacement }) => {
-      return acc.split(stringToReplace).join(replacement);
-    },
-    message
-  );
+  let messageHTML = document.createElement('div')
+  messageHTML.setAttribute("class","textWithEmote")
 
+  let stringSplit = message.split(' ')
+  
+  let messageString = ""
+  
+  for(let wordIndex in stringSplit){
+    let emoteName = stringReplacements.find(e => e.stringToReplace == stringSplit[wordIndex])
+    if(emoteName == undefined){
+      messageString += " "+stringSplit[wordIndex]
+      
+    }else{
+      const content = document.createTextNode(messageString)
+      let p = document.createElement('p')
+      p.appendChild(content)
+      messageHTML.appendChild(p)   
+      let img = document.createElement('img')
+      img.src = emoteName['replacement']
+      messageHTML.appendChild(img)
+      messageString = " "
+    }
+    
+  }
   return messageHTML;
 }
 
@@ -180,8 +179,8 @@ function getBadge(badge) {
     }else if (key === "bits-leader" || key === "sub-gift-leader"){
       message += `<img src="${badgeInfo['versions'][`${parseInt( badge[key])-1}`]['image_url_1x']}"/>`
     }
-    else if (key === "sub-gifter"){
-      let BadgeSubGifter = badgeInfo.find(e => e.id == badge[key])
+    else if (key === "sub-gifter" || key === "bits"){
+      let BadgeSubGifter = badgeInfo['versions'].find(e => e.id == badge[key])
        message += `<img src="${BadgeSubGifter['image_url_1x']}"/>`
     }
     else {
@@ -191,3 +190,35 @@ function getBadge(badge) {
   return message
 }
 
+
+
+
+  // if (emote == null) {
+  //   //style="--color: ${color}"
+  //   tchat.insertAdjacentHTML('beforeend',/*html*/`<div id="message-${tags['id']}" data-sender="${tags['user-id']}" class="message" >
+  //           <div class="meta">
+  //               ${tags['display-name']}
+  //           </div>
+  //           <div class="messageBody" id="messageBody">
+  //             <div id="badge" class="badge ${badge == null ? "badgeHidden" : ""}">
+  //             ${getBadge(badge)}
+  //             </div>
+  //             <div id="messageContent" class="${badge == null ? "messageContentWithoutBadge" : "messageContent"}">
+  //               ${message}
+  //             </div>
+  //           </div>`)
+  // } else {
+  //   // ${messageType === "animated-message" ? "animatedMessage" : "message"
+  //   tchat.insertAdjacentHTML('beforeend',/*html*/`<div id="message-${tags['id']}" data-sender="${tags['user-id']}" class="message">
+  //           <div class="meta">
+  //               ${tags['display-name']}
+  //           </div>
+  //           <div class="messageBody" id="messageBody">
+  //             <div id="badge" class="badge ${badge == null ? "badgeHidden" : ""}">
+  //               ${getBadge(badge)}  
+  //             </div>
+  //             <div id="messageContent" class="${badge == null ? "messageContentWithoutBadge" : "messageContent"}">
+  //               ${getMessageHTML(message, emote, messageType)}
+  //             </div>
+  //           </div>`)
+  // }
